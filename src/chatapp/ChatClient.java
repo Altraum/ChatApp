@@ -1,22 +1,17 @@
-/********************************************
-*	Basil Grant                             *
-*	12/2/14                                 *
-*	Mini-Project							*
-********************************************/
+package chatapp;
 
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
-import javax.swing.event.*;
 import java.net.*;
-import java.util.*;
 import java.io.*;
+import java.util.Scanner;
 
 public class ChatClient extends JFrame implements Runnable {
     
     public void run() {}
     
-    public ChatClient() {
+    public ChatClient(String host) {
         this.setLayout(new BorderLayout());
 	JPanel old = new JPanel();
 	old.setLayout(new BorderLayout());
@@ -40,7 +35,7 @@ public class ChatClient extends JFrame implements Runnable {
         bottom.add(sendButton);
         
         try{
-            Socket socket = new Socket("localhost", 8000);
+            Socket socket = new Socket(InetAddress.getByName(host), 8000);
             
             DataOutputStream toServer = new DataOutputStream(socket.getOutputStream());
             toServer.flush();
@@ -92,7 +87,11 @@ public class ChatClient extends JFrame implements Runnable {
     }
    
     public static void main(String[] args) {
-        new ChatClient();
+        System.out.println("Input address of Server Messenger");
+        Scanner input = new Scanner(System.in);
+        String host;
+        host=input.nextLine();
+        new ChatClient(host);
     }
     
 }

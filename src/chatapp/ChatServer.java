@@ -1,17 +1,10 @@
-/********************************************
-*	Basil Grant                             *
-*	12/2/14                                 *
-*	Mini-Project							*
-********************************************/
+package chatapp;
 
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
-import javax.swing.event.*;
 import java.net.*;
-import java.util.*;
 import java.io.*;
-import java.sql.SQLException;
 
 public class ChatServer extends JFrame implements Runnable {
     
@@ -21,10 +14,8 @@ public class ChatServer extends JFrame implements Runnable {
         this.setLayout(new BorderLayout());
 	JPanel old = new JPanel();
 	old.setLayout(new BorderLayout());
-        this.setTitle("Server Messenger");
 	this.add(old);
         this.setSize(500,300);
-	this.setVisible(true);
 	this.setDefaultCloseOperation(EXIT_ON_CLOSE);
         JPanel top = new JPanel(new FlowLayout());
 	JPanel center = new JPanel(new BorderLayout());
@@ -33,26 +24,33 @@ public class ChatServer extends JFrame implements Runnable {
         TextArea convoArea = new TextArea();
         convoArea.setEditable(false);
         JButton sendButton = new JButton("Send");
+        try{
+            this.setTitle("Server Messenger " + InetAddress.getLocalHost().getHostAddress());
+        }
+        catch(UnknownHostException i){
+            System.err.println(i);
+        }
         old.add(top, BorderLayout.PAGE_START);
 	old.add(center, BorderLayout.CENTER);
 	old.add(bottom, BorderLayout.PAGE_END);
         top.add(convoArea);
         center.add(userMessage, BorderLayout.CENTER);
         bottom.add(sendButton);
+        this.setVisible(true);
         
         try{
             ServerSocket serverSocket = new ServerSocket(8000);
             
             Socket socket = serverSocket.accept();
             
-            DataInputStream inputFromClient = new DataInputStream(socket.getInputStream());
-            DataOutputStream outputToClient = new DataOutputStream(socket.getOutputStream());
+            DataInputStream fromClient = new DataInputStream(socket.getInputStream());
+            DataOutputStream toClient = new DataOutputStream(socket.getOutputStream());
             Thread receiveThread = new Thread(){
                 public void run () {
                     while(true){
                     String receive;
                     try{
-                        receive = inputFromClient.readUTF();
+                        receive = fromClient.readUTF();
                         convoArea.append("Client: " + receive + "\n");
                     }
                     
@@ -66,14 +64,13 @@ public class ChatServer extends JFrame implements Runnable {
             Thread sendThread = new Thread() {
                     
                 public void run () {
-                sendButton.addActionListener(  
-                    new ActionListener()  {
+                sendButton.addActionListener(new ActionListener()  {
                         public void actionPerformed(ActionEvent e) {
                             try{
                                 String send;
                                 send = userMessage.getText();
                                 convoArea.append("Server: " + send + "\n");
-                                outputToClient.writeUTF(send);
+                                toClient.writeUTF(send);
                             }
                             catch (IOException ex) {
                                 System.err.println(ex);
@@ -85,8 +82,6 @@ public class ChatServer extends JFrame implements Runnable {
                 }
             };
             sendThread.start();
-            
-            
         }
         catch(IOException ex){
             System.err.println(ex);
